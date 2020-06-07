@@ -20,9 +20,9 @@ func fixRakuDistribution(ctx context.Context, d *distribution.Distribution) erro
 		cancel()
 		if err == nil {
 			if d.MainModule == name {
-				log.Printf("%s guessed MainModule %s matches name in META file", d.ID, d.MainModule)
+				log.Printf("%d guessed MainModule %s matches name in META file", d.ID, d.MainModule)
 			} else {
-				log.Printf("%s guessed MainModule %s does NOT match name (%s) in META file, use the name in META file", d.ID, d.MainModule, name)
+				log.Printf("%d guessed MainModule %s does NOT match name (%s) in META file, use the name in META file", d.ID, d.MainModule, name)
 				d.MainModule = name
 			}
 			return nil
