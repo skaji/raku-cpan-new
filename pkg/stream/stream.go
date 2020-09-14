@@ -45,24 +45,25 @@ func NewRaku(ctx context.Context, addr string, tick time.Duration) <-chan *distr
 	go func() {
 		defer close(ch)
 
-		stream := nntp.Stream(ctx, nntp.StreamConfig{
-			Addr:    addr,
-			Tick:    tick,
-			Group:   "perl.cpan.uploads",
-			Timeout: 25 * time.Second,
-		})
+		stream := nntp.Stream(ctx,
+			nntp.WithAddr(addr),
+			nntp.WithGroup("perl.cpan.uploads"),
+			nntp.WithTick(tick),
+			nntp.WithTimeout(25*time.Second),
+			nntp.WithSubscribeLog(true),
+		)
 
-		seen := make(map[int]bool)
+		seen := map[int]struct{}{}
 		for event := range stream {
-			if event.Type != nntp.EventTypeArticle {
-				if event.Type == nntp.EventTypeDebug {
-					log.Debug(event.Message)
+			if l, ok := event.(*nntp.Log); ok {
+				if l.Level == nntp.LogLevelDebug {
+					log.Debug(l.Message)
 				} else {
-					log.Print(event.Message)
+					log.Print(l.Message)
 				}
 				continue
 			}
-			article := event.Article
+			article := event.(*nntp.Article)
 			id := article.ID
 			subject := article.Header.Get("Subject")
 			dist, err := distribution.New(id, subject)
@@ -75,11 +76,11 @@ func NewRaku(ctx context.Context, addr string, tick time.Duration) <-chan *distr
 			if !dist.IsRaku {
 				continue
 			}
-			if seen[id] {
+			if _, ok := seen[id]; ok {
 				log.Print(id, fmt.Sprintf("Already seen %d, skip", id))
 				continue
 			}
-			seen[id] = true
+			seen[id] = struct{}{}
 
 			go func(id int) {
 				err := fixRakuDistribution(ctx, dist)

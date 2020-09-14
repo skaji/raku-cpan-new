@@ -8,3 +8,5 @@ require (
 	github.com/skaji/go-nntp v0.0.2
 	github.com/skaji/go-nntp-stream v0.0.0-20200607075831-0c87ee900b28
 )
+
+replace github.com/skaji/go-nntp-stream => /home/skaji/src/github.com/skaji/go-nntp-stream
